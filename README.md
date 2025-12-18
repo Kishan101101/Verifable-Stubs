@@ -76,7 +76,7 @@ venv/bin/python -m uvicorn main:app --host 0.0.0.0 --port 8000
 ## 🎯 Swagger UI — Complete API Documentation
 
 **Open your browser and go to:**
-### **http://127.0.0.1:8000/swagger**
+### **http://127.0.0.1:8000/docs**
 
 This is where you can:
 - ✅ See all 25+ API endpoints
