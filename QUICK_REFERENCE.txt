@@ -1,0 +1,402 @@
+# 🚀 QUICK REFERENCE - Verifiable Stubs API
+
+## Installation & Setup
+
+### Windows
+```powershell
+# Setup (run once)
+.\setup.bat
+
+# Activate environment (run each session)
+.\venv\Scripts\Activate.ps1
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Create database
+createdb -U postgres verifiable_stubs
+
+# Run migrations
+python -m alembic upgrade head
+
+# Start app
+python run.py
+```
+
+### Linux/Mac
+```bash
+# Setup (run once)
+chmod +x setup.sh
+./setup.sh
+
+# Activate environment (run each session)
+source venv/bin/activate
+
+# Create database
+createdb -U postgres verifiable_stubs
+
+# Run migrations
+python -m alembic upgrade head
+
+# Start app
+python run.py
+```
+
+### Using Docker
+```bash
+# Start PostgreSQL
+docker-compose up -d
+
+# Install and run
+pip install -r requirements.txt
+python -m alembic upgrade head
+python run.py
+```
+
+---
+
+## API Testing
+
+### Health Check
+```bash
+curl http://localhost:5000/api/v1/health
+```
+
+### Add Doctor
+```bash
+curl -X POST http://localhost:5000/api/v1/doctors/admin/add \
+  -H "Content-Type: application/json" \
+  -d '[{"doctor_id":"DOC001","name":"Dr. John","license_number":"LIC001","license_status":"Active","license_expiry":"2025-12-31","degree":{"degree_name":"MBBS","university":"Medical Univ","year_of_passing":"2015","registration_number":"REG001"},"board_certifications":[{"board_name":"State Board","certificate_number":"CERT001","valid_till":"2026-12-31"}],"training":[{"program_name":"Medicine","institution":"Hospital","completion_year":"2016"}],"employment_history":[{"employer_name":"Hospital","role":"Doctor","years":"5"}],"disciplinary_actions":[],"malpractice_cases":[]}]'
+```
+
+### Check License
+```bash
+curl "http://localhost:5000/api/v1/doctors/psv/license/status?license_number=LIC001"
+```
+
+### Access Swagger UI
+```
+Browser: http://localhost:5000/apidocs/
+```
+
+---
+
+## Database Commands
+
+### Create Database
+```bash
+createdb -U postgres verifiable_stubs
+```
+
+### Connect to Database
+```bash
+psql -U postgres -d verifiable_stubs
+```
+
+### Run Migrations
+```bash
+# Apply all pending
+python -m alembic upgrade head
+
+# Create new migration
+python -m alembic revision --autogenerate -m "description"
+
+# Rollback one version
+python -m alembic downgrade -1
+
+# View history
+python -m alembic history
+```
+
+### Drop Database
+```bash
+dropdb -U postgres verifiable_stubs
+```
+
+---
+
+## Project Structure
+
+### Main Files
+```
+run.py              → Application entry point
+config.py           → Configuration (Dev/Prod/Test)
+requirements.txt    → Python dependencies
+.env                → Environment variables (DO NOT COMMIT)
+```
+
+### Application Code
+```
+app/__init__.py              → Flask app factory
+app/models/                  → Database models
+  ├─ doctor.py              → Doctor-related models
+  ├─ academic.py            → Academic-related models
+  └─ insurance.py           → Insurance-related models
+  
+app/routes/                  → API endpoints
+  ├─ doctor_onboarding.py    → Doctor APIs
+  ├─ academic_admission.py   → Academic APIs
+  └─ insurance_claim.py      → Insurance APIs
+  
+app/schemas/                 → Pydantic validation
+  ├─ doctor_schema.py
+  ├─ academic_schema.py
+  └─ insurance_schema.py
+  
+app/utils/                   → Utility functions
+```
+
+### Configuration
+```
+migrations/                  → Database migrations
+.env                        → Environment variables
+.gitignore                  → Git ignore rules
+docker-compose.yml          → Docker services
+Dockerfile                  → Docker image
+```
+
+### Documentation
+```
+README.md                   → Project overview
+SETUP_INSTRUCTIONS.txt      → Setup guide
+AWS_DEPLOYMENT.md           → AWS deployment
+API_EXAMPLES.rest           → API examples
+PROJECT_SUMMARY.txt         → Project details
+QUICK_REFERENCE.txt         → This file
+```
+
+---
+
+## Environment Variables (.env)
+
+```env
+# Flask
+FLASK_ENV=development           # development/production
+FLASK_DEBUG=True               # Enable debug mode
+SECRET_KEY=your-secret-key     # Flask secret
+
+# Database
+DB_USER=postgres               # PostgreSQL user
+DB_PASSWORD=postgres           # PostgreSQL password
+DB_HOST=localhost              # Database host
+DB_PORT=5432                   # Database port
+DB_NAME=verifiable_stubs       # Database name
+
+# Database URL (automatic from above)
+DATABASE_URL=postgresql://user:password@host:port/database
+
+# API
+API_TITLE=Verifiable Stubs APIs # API title
+API_VERSION=1.0.0              # API version
+```
+
+---
+
+## Common Commands
+
+### Install/Update Dependencies
+```bash
+pip install -r requirements.txt
+pip install --upgrade pip
+```
+
+### Run Development Server
+```bash
+python run.py
+```
+
+### Run Production Server (Gunicorn)
+```bash
+gunicorn -w 4 -b 0.0.0.0:5000 run:app
+```
+
+### Check Python Version
+```bash
+python --version
+```
+
+### List Installed Packages
+```bash
+pip list
+pip freeze > requirements.txt
+```
+
+### Run Migrations
+```bash
+python -m alembic upgrade head
+```
+
+---
+
+## Troubleshooting
+
+### Port 5000 Already in Use
+```bash
+# Kill process using port 5000 (Windows)
+netstat -ano | findstr :5000
+taskkill /PID <PID> /F
+
+# Kill process using port 5000 (Linux/Mac)
+lsof -i :5000
+kill -9 <PID>
+```
+
+### Database Connection Error
+```bash
+# Test connection
+psql -U postgres -d verifiable_stubs
+
+# Check .env DATABASE_URL
+cat .env | grep DATABASE_URL
+
+# Verify PostgreSQL is running
+pg_isready
+```
+
+### Module Not Found Error
+```bash
+# Activate virtual environment
+.\venv\Scripts\Activate.ps1  # Windows
+source venv/bin/activate    # Linux/Mac
+
+# Reinstall requirements
+pip install -r requirements.txt
+```
+
+### Alembic Error
+```bash
+# Check current migration version
+python -m alembic current
+
+# Rollback to initial
+python -m alembic downgrade -1
+
+# Re-run migrations
+python -m alembic upgrade head
+```
+
+---
+
+## API Endpoints Quick Reference
+
+### Doctor Onboarding (`/api/v1/doctors`)
+```
+POST   /admin/add                    → Add doctors
+GET    /psv/license/status          → License status
+GET    /psv/degree/info             → Degree info
+GET    /psv/board-cert/info         → Board cert
+GET    /psv/training/info           → Training info
+GET    /psv/employment/info         → Employment
+GET    /psv/disciplines/check       → Disciplinary
+GET    /psv/malpractice/history     → Malpractice
+GET    /psv/verify                  → Generic verify
+```
+
+### Academic Admission (`/api/v1/academic`)
+```
+POST   /admin/students               → Add students
+POST   /admin/eligibility-rules      → Add rules
+POST   /admin/merit-rules            → Add merit rules
+GET    /verify/roll-number           → Verify roll
+GET    /verify/certificate           → Verify cert
+GET    /check-eligibility            → Check eligible
+GET    /calculate-merit              → Calculate merit
+```
+
+### Insurance Claims (`/api/v1/insurance`)
+```
+POST   /admin/medical-enrichment     → Add enrichment
+POST   /admin/reviewer-request       → Reviewer request
+POST   /admin/payout-request         → Payout request
+POST   /admin/notification           → Send notification
+POST   /medical/enrich               → Enrich data
+POST   /claims/review                → Review claim
+POST   /payout/process               → Process payout
+POST   /notification/send            → Send notification
+```
+
+### Health Check
+```
+GET    /health                       → Health check
+```
+
+---
+
+## File Locations
+
+| What | Where |
+|------|-------|
+| API Code | `app/routes/` |
+| Database Models | `app/models/` |
+| Validation Schemas | `app/schemas/` |
+| Configuration | `config.py` |
+| Environment Variables | `.env` |
+| Migrations | `migrations/versions/` |
+| Documentation | Root directory |
+| API Examples | `API_EXAMPLES.rest` |
+
+---
+
+## Useful Links
+
+| Resource | URL |
+|----------|-----|
+| Swagger UI | http://localhost:5000/apidocs/ |
+| Health Check | http://localhost:5000/api/v1/health |
+| Flask Docs | https://flask.palletsprojects.com/ |
+| SQLAlchemy | https://docs.sqlalchemy.org/ |
+| Pydantic | https://docs.pydantic.dev/ |
+| PostgreSQL | https://www.postgresql.org/ |
+
+---
+
+## Deployment Quick Commands
+
+### AWS Elastic Beanstalk
+```bash
+pip install awsebcli
+eb init -p python-3.11 verifiable-stubs
+eb create verifiable-stubs-prod
+eb deploy
+```
+
+### Docker Build & Push
+```bash
+docker build -t verifiable-stubs:latest .
+docker tag verifiable-stubs:latest <account>.dkr.ecr.<region>.amazonaws.com/verifiable-stubs:latest
+docker push <account>.dkr.ecr.<region>.amazonaws.com/verifiable-stubs:latest
+```
+
+---
+
+## Performance Tips
+
+1. **Use Indexes** - Already added on frequently queried columns
+2. **Connection Pooling** - SQLAlchemy handles this
+3. **Query Optimization** - Use lazy loading where appropriate
+4. **Caching** - Consider Redis for frequently accessed data
+5. **Pagination** - Add pagination for large datasets
+6. **Logging** - Enable detailed logging in production
+7. **Monitoring** - Set up CloudWatch alerts
+
+---
+
+## Security Best Practices
+
+- [ ] Change SECRET_KEY in production
+- [ ] Use strong DATABASE_URL credentials
+- [ ] Enable HTTPS/SSL in production
+- [ ] Don't commit .env file
+- [ ] Use environment variables for secrets
+- [ ] Validate all inputs (Pydantic does this)
+- [ ] Use CORS selectively
+- [ ] Add rate limiting
+- [ ] Log security events
+- [ ] Regular security audits
+
+---
+
+**Last Updated:** December 2024
+**Status:** Ready for Development & Production
+**Framework:** Flask 2.3+
+**Database:** PostgreSQL 12+

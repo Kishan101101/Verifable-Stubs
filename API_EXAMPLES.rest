@@ -1,0 +1,228 @@
+### Doctor Onboarding API Examples
+
+# 1. Add Doctors
+POST http://localhost:5000/api/v1/doctors/admin/add
+Content-Type: application/json
+
+[
+  {
+    "doctor_id": "DOC001",
+    "name": "Dr. John Doe",
+    "license_number": "LIC001",
+    "license_status": "Active",
+    "license_expiry": "2025-12-31",
+    "degree": {
+      "degree_name": "MBBS",
+      "university": "Medical University",
+      "year_of_passing": "2015",
+      "registration_number": "REG001"
+    },
+    "board_certifications": [
+      {
+        "board_name": "State Medical Board",
+        "certificate_number": "CERT001",
+        "valid_till": "2026-12-31"
+      }
+    ],
+    "training": [
+      {
+        "program_name": "General Medicine",
+        "institution": "City Hospital",
+        "completion_year": "2016"
+      }
+    ],
+    "employment_history": [
+      {
+        "employer_name": "City Hospital",
+        "role": "General Practitioner",
+        "years": "5"
+      }
+    ],
+    "disciplinary_actions": [],
+    "malpractice_cases": []
+  }
+]
+
+### 2. Get License Status
+GET http://localhost:5000/api/v1/doctors/psv/license/status?license_number=LIC001
+
+### 3. Get Degree Info
+GET http://localhost:5000/api/v1/doctors/psv/degree/info?doctor_id=DOC001
+
+### 4. Get Board Certification
+GET http://localhost:5000/api/v1/doctors/psv/board-cert/info?certificate_number=CERT001
+
+### 5. Get Training Info
+GET http://localhost:5000/api/v1/doctors/psv/training/info?doctor_id=DOC001
+
+### 6. Get Employment Info
+GET http://localhost:5000/api/v1/doctors/psv/employment/info?doctor_id=DOC001
+
+### 7. Check Disciplinary Actions
+GET http://localhost:5000/api/v1/doctors/psv/disciplines/check?license_number=LIC001
+
+### 8. Get Malpractice History
+GET http://localhost:5000/api/v1/doctors/psv/malpractice/history?doctor_id=DOC001
+
+### 9. Generic Verification
+GET http://localhost:5000/api/v1/doctors/psv/verify?type=license&value=LIC001
+
+---
+
+### Academic Admission API Examples
+
+# 1. Add Students
+POST http://localhost:5000/api/v1/academic/admin/students
+Content-Type: application/json
+
+[
+  {
+    "student_id": "STU001",
+    "name": "John Smith",
+    "dob": "2000-01-15",
+    "academic_records": [
+      {
+        "level": "10th",
+        "board": "State Board",
+        "roll_number": "ROLL001",
+        "year_of_passing": "2016",
+        "marks": 85.5,
+        "certificate_number": "CERT001"
+      },
+      {
+        "level": "12th",
+        "board": "State Board",
+        "roll_number": "ROLL002",
+        "year_of_passing": "2018",
+        "marks": 88.0,
+        "certificate_number": "CERT002"
+      }
+    ]
+  }
+]
+
+### 2. Add Eligibility Rule
+POST http://localhost:5000/api/v1/academic/admin/eligibility-rules
+Content-Type: application/json
+
+{
+  "program": "Engineering",
+  "min_marks": 75.0,
+  "age_limit": 25,
+  "category_specific": {
+    "OBC": 70.0,
+    "SC": 65.0,
+    "ST": 65.0
+  }
+}
+
+### 3. Add Merit Rule
+POST http://localhost:5000/api/v1/academic/admin/merit-rules
+Content-Type: application/json
+
+{
+  "program": "Engineering",
+  "weightage": {
+    "12th_marks": 0.4,
+    "graduation_marks": 0.6
+  }
+}
+
+### 4. Verify Roll Number
+GET http://localhost:5000/api/v1/academic/verify/roll-number?roll_number=ROLL001
+
+### 5. Verify Certificate
+GET http://localhost:5000/api/v1/academic/verify/certificate?certificate_number=CERT001
+
+### 6. Check Eligibility
+GET http://localhost:5000/api/v1/academic/check-eligibility?student_id=STU001&program=Engineering
+
+### 7. Calculate Merit
+GET http://localhost:5000/api/v1/academic/calculate-merit?student_id=STU001&program=Engineering
+
+---
+
+### Insurance Claim API Examples
+
+# 1. Add Medical Enrichment Request
+POST http://localhost:5000/api/v1/insurance/admin/medical-enrichment
+Content-Type: application/json
+
+{
+  "diagnosis": "Type 2 Diabetes",
+  "hospital_name": "City Medical Center"
+}
+
+### 2. Create Reviewer Request
+POST http://localhost:5000/api/v1/insurance/admin/reviewer-request
+Content-Type: application/json
+
+{
+  "workflow_state": {
+    "claim_id": "CLM001",
+    "status": "pending_review",
+    "reviewer": "Dr. Jane"
+  }
+}
+
+### 3. Create Payout Request
+POST http://localhost:5000/api/v1/insurance/admin/payout-request
+Content-Type: application/json
+
+{
+  "approved_amount": 50000.00,
+  "deductible": 5000.00,
+  "policy_limit": 100000.00
+}
+
+### 4. Send Notification
+POST http://localhost:5000/api/v1/insurance/admin/notification
+Content-Type: application/json
+
+{
+  "recipient_email": "patient@example.com",
+  "subject": "Claim Status Update",
+  "message": "Your claim has been approved"
+}
+
+### 5. Medical Data Enrichment
+POST http://localhost:5000/api/v1/insurance/medical/enrich
+Content-Type: application/json
+
+{
+  "diagnosis": "Hypertension",
+  "hospital_name": "General Hospital"
+}
+
+### 6. Review Claim
+POST http://localhost:5000/api/v1/insurance/claims/review
+Content-Type: application/json
+
+{
+  "claim_id": "CLM001",
+  "status": "approved"
+}
+
+### 7. Process Payout
+POST http://localhost:5000/api/v1/insurance/payout/process
+Content-Type: application/json
+
+{
+  "claim_id": "CLM001",
+  "payout_amount": 45000.00
+}
+
+### 8. Send Notification Endpoint
+POST http://localhost:5000/api/v1/insurance/notification/send
+Content-Type: application/json
+
+{
+  "recipient_email": "patient@example.com",
+  "subject": "Payment Processed",
+  "message": "Your claim payment has been processed"
+}
+
+---
+
+### Health Check
+GET http://localhost:5000/api/v1/health
