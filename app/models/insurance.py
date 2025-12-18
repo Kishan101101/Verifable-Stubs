@@ -1,17 +1,17 @@
-from app import db
+from app.core.database import Base
 from datetime import datetime
-from sqlalchemy.dialects.postgresql import JSON
+from sqlalchemy import Column, Integer, String, Boolean, Text, DateTime, Numeric, JSON
 
-class MedicalEnrichmentRequest(db.Model):
+class MedicalEnrichmentRequest(Base):
     """Medical data enrichment requests"""
     __tablename__ = 'medical_enrichment_requests'
     
-    id = db.Column(db.Integer, primary_key=True)
-    diagnosis = db.Column(db.String(255), nullable=False)
-    hospital_name = db.Column(db.String(255), nullable=False)
-    icd_mapping = db.Column(JSON, nullable=True)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    id = Column(Integer, primary_key=True)
+    diagnosis = Column(String(255), nullable=False)
+    hospital_name = Column(String(255), nullable=False)
+    icd_mapping = Column(JSON, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
     def to_dict(self):
         return {
@@ -23,14 +23,14 @@ class MedicalEnrichmentRequest(db.Model):
             'updated_at': self.updated_at.isoformat()
         }
 
-class ReviewerRequest(db.Model):
+class ReviewerRequest(Base):
     """Reviewer assignment requests"""
     __tablename__ = 'reviewer_requests'
     
-    id = db.Column(db.Integer, primary_key=True)
-    workflow_state = db.Column(JSON, nullable=False)  # Dict with workflow state
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    id = Column(Integer, primary_key=True)
+    workflow_state = Column(JSON, nullable=False)  # Dict with workflow state
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
     def to_dict(self):
         return {
@@ -40,16 +40,16 @@ class ReviewerRequest(db.Model):
             'updated_at': self.updated_at.isoformat()
         }
 
-class PayoutRequest(db.Model):
+class PayoutRequest(Base):
     """Payout request information"""
     __tablename__ = 'payout_requests'
     
-    id = db.Column(db.Integer, primary_key=True)
-    approved_amount = db.Column(db.Numeric(10, 2), nullable=False)
-    deductible = db.Column(db.Numeric(10, 2), nullable=False)
-    policy_limit = db.Column(db.Numeric(10, 2), nullable=False)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    id = Column(Integer, primary_key=True)
+    approved_amount = Column(Numeric(10, 2), nullable=False)
+    deductible = Column(Numeric(10, 2), nullable=False)
+    policy_limit = Column(Numeric(10, 2), nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
     def to_dict(self):
         return {
@@ -61,17 +61,17 @@ class PayoutRequest(db.Model):
             'updated_at': self.updated_at.isoformat()
         }
 
-class NotificationRequest(db.Model):
+class NotificationRequest(Base):
     """Notification requests"""
     __tablename__ = 'notification_requests'
     
-    id = db.Column(db.Integer, primary_key=True)
-    recipient_email = db.Column(db.String(255), nullable=False)
-    subject = db.Column(db.String(255), nullable=False)
-    message = db.Column(db.Text, nullable=False)
-    sent = db.Column(db.Boolean, default=False)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    id = Column(Integer, primary_key=True)
+    recipient_email = Column(String(255), nullable=False)
+    subject = Column(String(255), nullable=False)
+    message = Column(Text, nullable=False)
+    sent = Column(Boolean, default=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
     def to_dict(self):
         return {
@@ -83,3 +83,4 @@ class NotificationRequest(db.Model):
             'created_at': self.created_at.isoformat(),
             'updated_at': self.updated_at.isoformat()
         }
+

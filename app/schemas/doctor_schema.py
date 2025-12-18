@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import List, Dict, Optional
+from typing import List, Dict, Optional, Any
 
 # ============================
 # DOCTOR ONBOARDING SCHEMAS
@@ -36,8 +36,8 @@ class DoctorSeedSchema(BaseModel):
     board_certifications: List[BoardCertSchema]
     training: List[TrainingSchema]
     employment_history: List[EmploymentSchema]
-    disciplinary_actions: List[dict] = []
-    malpractice_cases: List[dict] = []
+    disciplinary_actions: List[Any] = []
+    malpractice_cases: List[Any] = []
 
 class DoctorResponseSchema(BaseModel):
     message: str
@@ -87,3 +87,4 @@ class GenericVerifySchema(BaseModel):
     confidence: float
     type: str
     value: str
+

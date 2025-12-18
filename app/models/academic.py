@@ -1,20 +1,21 @@
-from app import db
+from app.core.database import Base
 from datetime import datetime
-from sqlalchemy.dialects.postgresql import JSON
+from sqlalchemy import Column, Integer, String, Float, DateTime, ForeignKey, JSON
+from sqlalchemy.orm import relationship
 
-class StudentSeed(db.Model):
+class StudentSeed(Base):
     """Student model for academic processing"""
     __tablename__ = 'student_seeds'
     
-    id = db.Column(db.Integer, primary_key=True)
-    student_id = db.Column(db.String(255), unique=True, nullable=False, index=True)
-    name = db.Column(db.String(255), nullable=False)
-    dob = db.Column(db.String(50), nullable=False)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    id = Column(Integer, primary_key=True)
+    student_id = Column(String(255), unique=True, nullable=False, index=True)
+    name = Column(String(255), nullable=False)
+    dob = Column(String(50), nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
     # Relationships
-    academic_records = db.relationship('AcademicRecord', backref='student', lazy=True, cascade='all, delete-orphan')
+    academic_records = relationship('AcademicRecord', backref='student', lazy=True, cascade='all, delete-orphan')
     
     def to_dict(self):
         return {
@@ -24,18 +25,18 @@ class StudentSeed(db.Model):
             'academic_records': [ar.to_dict() for ar in self.academic_records]
         }
 
-class AcademicRecord(db.Model):
+class AcademicRecord(Base):
     """Academic record for student"""
     __tablename__ = 'academic_records'
     
-    id = db.Column(db.Integer, primary_key=True)
-    student_id = db.Column(db.Integer, db.ForeignKey('student_seeds.id'), nullable=False)
-    level = db.Column(db.String(50), nullable=False)  # 10th, 12th, Graduation
-    board = db.Column(db.String(255), nullable=False)
-    roll_number = db.Column(db.String(255), nullable=False, index=True)
-    year_of_passing = db.Column(db.String(50), nullable=False)
-    marks = db.Column(db.Float, nullable=False)
-    certificate_number = db.Column(db.String(255), unique=True, nullable=False, index=True)
+    id = Column(Integer, primary_key=True)
+    student_id = Column(Integer, ForeignKey('student_seeds.id'), nullable=False)
+    level = Column(String(50), nullable=False)  # 10th, 12th, Graduation
+    board = Column(String(255), nullable=False)
+    roll_number = Column(String(255), nullable=False, index=True)
+    year_of_passing = Column(String(50), nullable=False)
+    marks = Column(Float, nullable=False)
+    certificate_number = Column(String(255), unique=True, nullable=False, index=True)
     
     def to_dict(self):
         return {
@@ -47,17 +48,17 @@ class AcademicRecord(db.Model):
             'certificate_number': self.certificate_number
         }
 
-class EligibilityRule(db.Model):
+class EligibilityRule(Base):
     """Eligibility rules for programs"""
     __tablename__ = 'eligibility_rules'
     
-    id = db.Column(db.Integer, primary_key=True)
-    program = db.Column(db.String(255), unique=True, nullable=False, index=True)
-    min_marks = db.Column(db.Float, nullable=False)
-    age_limit = db.Column(db.Integer, nullable=True)
-    category_specific = db.Column(JSON, nullable=True)  # e.g., {"OBC": 55, "SC": 50}
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    id = Column(Integer, primary_key=True)
+    program = Column(String(255), unique=True, nullable=False, index=True)
+    min_marks = Column(Float, nullable=False)
+    age_limit = Column(Integer, nullable=True)
+    category_specific = Column(JSON, nullable=True)  # e.g., {"OBC": 55, "SC": 50}
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
     def to_dict(self):
         return {
@@ -67,18 +68,19 @@ class EligibilityRule(db.Model):
             'category_specific': self.category_specific
         }
 
-class MeritRule(db.Model):
+class MeritRule(Base):
     """Merit calculation rules"""
     __tablename__ = 'merit_rules'
     
-    id = db.Column(db.Integer, primary_key=True)
-    program = db.Column(db.String(255), unique=True, nullable=False, index=True)
-    weightage = db.Column(JSON, nullable=False)  # e.g., {"12th_marks": 0.7, "graduation_marks": 0.3}
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    updated_at = db.Column(db.DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    id = Column(Integer, primary_key=True)
+    program = Column(String(255), unique=True, nullable=False, index=True)
+    weightage = Column(JSON, nullable=False)  # e.g., {"12th_marks": 0.7, "graduation_marks": 0.3}
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
     def to_dict(self):
         return {
             'program': self.program,
             'weightage': self.weightage
         }
+
