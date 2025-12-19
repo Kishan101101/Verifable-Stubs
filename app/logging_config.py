@@ -44,4 +44,9 @@ def configure_logging(log_level: str | int = None, log_dir: str | None = None) -
     root_logger.addHandler(fh)
 
     logging.getLogger("alembic").setLevel(logging.WARN)
+    # Suppress verbose SQLAlchemy engine INFO logs (e.g. SQL statements)
+    logging.getLogger("sqlalchemy").setLevel(logging.WARN)
     logging.getLogger("sqlalchemy.engine").setLevel(logging.WARN)
+    # Some SQLAlchemy loggers include the class name as part of the logger
+    # (e.g. 'sqlalchemy.engine.Engine') — set that explicitly as well.
+    logging.getLogger("sqlalchemy.engine.Engine").setLevel(logging.WARN)

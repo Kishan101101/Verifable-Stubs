@@ -1,5 +1,7 @@
 """FastAPI application factory"""
 from contextlib import asynccontextmanager
+import logging
+import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from config import get_config
@@ -8,6 +10,7 @@ from app.logging_config import configure_logging
 from app.routes.academic_router import router as academic_router
 from app.routes.doctor_router import router as doctor_router
 from app.routes.insurance_router import router as insurance_router
+from app.routes.compliance import router as compliance_router
 
 def create_app(env: str = "development") -> FastAPI:
     """Create and configure FastAPI application"""
@@ -25,10 +28,18 @@ def create_app(env: str = "development") -> FastAPI:
     @asynccontextmanager
     async def lifespan(app: FastAPI):
         # Startup
-        print("Application startup")
+        logger = logging.getLogger("startup")
+        host = os.getenv("HOST", "0.0.0.0")
+        port = int(os.getenv("PORT", 8000))
+        logger.info("Application startup")
+        # Provide friendly URLs (show localhost for browser access even when binding 0.0.0.0)
+        logger.info(f"Server binding: {host}:{port}")
+        logger.info(f"Swagger UI: http://localhost:{port}/docs")
+        logger.info(f"Redoc: http://localhost:{port}/redoc")
+        logger.info("Compliance endpoints: http://localhost:%d/compliance/aml/sanctions", port)
         yield
         # Shutdown
-        print("Application shutdown")
+        logger.info("Application shutdown")
     
     app = FastAPI(
         title=settings.API_TITLE,
@@ -50,6 +61,8 @@ def create_app(env: str = "development") -> FastAPI:
     app.include_router(academic_router, prefix="/api/v1/academic", tags=["Academic"])
     app.include_router(doctor_router, prefix="/api/v1/doctors", tags=["Doctor"])
     app.include_router(insurance_router, prefix="/api/v1/insurance", tags=["Insurance"])
+    # Compliance APIs
+    app.include_router(compliance_router, prefix="/compliance", tags=["Compliance"])
     
     # Health check endpoint
     @app.get("/api/v1/health", tags=["Health"])

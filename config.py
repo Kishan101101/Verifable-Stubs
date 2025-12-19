@@ -10,7 +10,8 @@ class Settings:
     API_TITLE: str = os.getenv('API_TITLE', 'Verifiable Stubs APIs')
     API_VERSION: str = os.getenv('API_VERSION', '1.0.0')
     DATABASE_URL: str = os.getenv('DATABASE_URL', 'postgresql://postgres:postgres@127.0.0.1:5433/verifiable_stubs')
-    SQLALCHEMY_ECHO: bool = True
+    # Disable SQLAlchemy echo by default to avoid verbose SQL logs
+    SQLALCHEMY_ECHO: bool = False
     LOG_LEVEL: str = os.getenv('LOG_LEVEL', 'INFO')
 
 class DevelopmentConfig(Settings):
@@ -31,21 +32,20 @@ class TestingConfig(Settings):
     APP_ENV: str = "testing"
     DATABASE_URL: str = 'sqlite:///./test.db'
 
-# Create config mapping
-config = {
-    'development': DevelopmentConfig(),
-    'production': ProductionConfig(),
-    'testing': TestingConfig(),
-}
-
-def get_config(config_name: str = 'development') -> Settings:
-    """Get configuration object"""
-    return config.get(config_name, config['development'])
-
-
+# Create config mapping (map names to classes)
 config = {
     'development': DevelopmentConfig,
     'production': ProductionConfig,
     'testing': TestingConfig,
-    'default': DevelopmentConfig
+    'default': DevelopmentConfig,
 }
+
+
+def get_config(config_name: str = 'development') -> Settings:
+    """Get configuration instance for the given name.
+
+    Returns an instantiated `Settings` subclass so callers can access
+    attributes as `settings.API_TITLE`.
+    """
+    cfg_class = config.get(config_name, config['default'])
+    return cfg_class()
