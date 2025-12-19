@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from datetime import datetime
 import uuid
 from sqlalchemy.orm import Session
@@ -236,3 +236,98 @@ def market_check(payload: MarketComplianceRequest, db: Session = Depends(get_db)
     db.commit()
     
     return response_data
+
+
+# =========================================================
+# GET ENDPOINTS - Fetch stored compliance results
+# =========================================================
+
+@router.get("/aml/sanctions/{request_id}")
+def get_sanctions_result(request_id: str, db: Session = Depends(get_db)):
+    """Retrieve stored sanctions check result by request_id"""
+    record = db.query(ComplianceRecord).filter_by(
+        request_id=request_id, check_type="sanctions"
+    ).first()
+    
+    if not record:
+        raise HTTPException(status_code=404, detail="Sanctions result not found")
+    
+    return record.response_payload
+
+
+@router.get("/aml/pep/{request_id}")
+def get_pep_result(request_id: str, db: Session = Depends(get_db)):
+    """Retrieve stored PEP check result by request_id"""
+    record = db.query(ComplianceRecord).filter_by(
+        request_id=request_id, check_type="pep"
+    ).first()
+    
+    if not record:
+        raise HTTPException(status_code=404, detail="PEP result not found")
+    
+    return record.response_payload
+
+
+@router.get("/gdpr/check/{request_id}")
+def get_gdpr_result(request_id: str, db: Session = Depends(get_db)):
+    """Retrieve stored GDPR compliance check result by request_id"""
+    record = db.query(ComplianceRecord).filter_by(
+        request_id=request_id, check_type="gdpr"
+    ).first()
+    
+    if not record:
+        raise HTTPException(status_code=404, detail="GDPR result not found")
+    
+    return record.response_payload
+
+
+@router.get("/pci/check/{request_id}")
+def get_pci_result(request_id: str, db: Session = Depends(get_db)):
+    """Retrieve stored PCI DSS compliance check result by request_id"""
+    record = db.query(ComplianceRecord).filter_by(
+        request_id=request_id, check_type="pci"
+    ).first()
+    
+    if not record:
+        raise HTTPException(status_code=404, detail="PCI DSS result not found")
+    
+    return record.response_payload
+
+
+@router.get("/hipaa/check/{request_id}")
+def get_hipaa_result(request_id: str, db: Session = Depends(get_db)):
+    """Retrieve stored HIPAA compliance check result by request_id"""
+    record = db.query(ComplianceRecord).filter_by(
+        request_id=request_id, check_type="hipaa"
+    ).first()
+    
+    if not record:
+        raise HTTPException(status_code=404, detail="HIPAA result not found")
+    
+    return record.response_payload
+
+
+@router.get("/iso27001/check/{request_id}")
+def get_iso27001_result(request_id: str, db: Session = Depends(get_db)):
+    """Retrieve stored ISO 27001 compliance check result by request_id"""
+    record = db.query(ComplianceRecord).filter_by(
+        request_id=request_id, check_type="iso27001"
+    ).first()
+    
+    if not record:
+        raise HTTPException(status_code=404, detail="ISO 27001 result not found")
+    
+    return record.response_payload
+
+
+@router.get("/market/check/{request_id}")
+def get_market_result(request_id: str, db: Session = Depends(get_db)):
+    """Retrieve stored market (FINRA/MiFID) compliance check result by request_id"""
+    record = db.query(ComplianceRecord).filter_by(
+        request_id=request_id, check_type="market"
+    ).first()
+    
+    if not record:
+        raise HTTPException(status_code=404, detail="Market compliance result not found")
+    
+    return record.response_payload
