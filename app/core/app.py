@@ -29,14 +29,10 @@ def create_app(env: str = "development") -> FastAPI:
     async def lifespan(app: FastAPI):
         # Startup
         logger = logging.getLogger("startup")
-        host = os.getenv("HOST", "0.0.0.0")
         port = int(os.getenv("PORT", 8000))
         logger.info("Application startup")
-        # Provide friendly URLs (show localhost for browser access even when binding 0.0.0.0)
-        logger.info(f"Server binding: {host}:{port}")
         logger.info(f"Swagger UI: http://localhost:{port}/docs")
         logger.info(f"Redoc: http://localhost:{port}/redoc")
-        logger.info("Compliance endpoints: http://localhost:%d/compliance/aml/sanctions", port)
         yield
         # Shutdown
         logger.info("Application shutdown")
