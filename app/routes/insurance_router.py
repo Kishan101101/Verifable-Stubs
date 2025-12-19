@@ -1,192 +1,145 @@
 from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.orm import Session
+from datetime import datetime
 from app.core.database import get_db
-from app.models.insurance import (
-    MedicalEnrichmentRequest, ReviewerRequest, PayoutRequest, NotificationRequest
-)
+from app.models.insurance import HospitalVerification, PatientVerification
 from app.schemas.insurance_schema import (
-    MedicalEnrichmentRequestSchema, ReviewerRequestSchema, 
-    PayoutRequestSchema, NotificationRequestSchema
+    HospitalVerificationRequestSchema, PatientVerificationRequestSchema
 )
 
 router = APIRouter()
 
-# ICD mapping reference data
-ICD_MAP = {
-    "diabetes": ("E11.9", "Type 2 diabetes mellitus"),
-    "hypertension": ("I10", "Essential hypertension"),
-    "asthma": ("J45.909", "Unspecified asthma"),
-}
 
-@router.post('/admin/medical-enrichment')
-def add_medical_enrichment(data: MedicalEnrichmentRequestSchema, db: Session = Depends(get_db)):
-    """Admin endpoint to add medical enrichment requests"""
+# =========================================================
+# HOSPITAL VERIFICATION ENDPOINTS
+# =========================================================
+
+@router.post('/psv/hospital/registration')
+def verify_hospital_registration(data: HospitalVerificationRequestSchema, db: Session = Depends(get_db)):
+    """POST /api/v1/insurance/hospital/verify - Verify hospital registration by registration number"""
     try:
-        # Map diagnosis to ICD code
-        diagnosis_lower = data.diagnosis.lower()
-        icd_mapping = None
+        # Mock hospital registry - in production this would check against real registry
+        hospital_registry = {
+            "H001": True,  # apollo hospital
+            "H002": True,  # fortis hospital
+            "H003": True,  # aiims delhi
+        }
         
-        for key, (icd_code, description) in ICD_MAP.items():
-            if key in diagnosis_lower:
-                icd_mapping = {"icd_code": icd_code, "description": description}
-                break
+        # Check if registration number exists in mock registry
+        is_verified = hospital_registry.get(data.registration_number.upper(), False)
         
-        req = MedicalEnrichmentRequest(
-            diagnosis=data.diagnosis,
+        # Store verification record
+        verification = HospitalVerification(
+            registration_number=data.registration_number,
             hospital_name=data.hospital_name,
-            icd_mapping=icd_mapping
+            verified=is_verified,
+            verified_at=datetime.utcnow() if is_verified else None
         )
         
-        db.add(req)
+        db.add(verification)
         db.commit()
         
         return {
-            'id': req.id,
-            'diagnosis': req.diagnosis,
-            'hospital_name': req.hospital_name,
-            'icd_mapping': req.icd_mapping,
-            'message': 'Medical enrichment request added'
-        }
-    
-    except Exception as e:
-        db.rollback()
-        raise HTTPException(status_code=500, detail=str(e))
-
-@router.post('/admin/reviewer-request')
-def add_reviewer_request(data: ReviewerRequestSchema, db: Session = Depends(get_db)):
-    """Admin endpoint to create reviewer assignment requests"""
-    try:
-        req = ReviewerRequest(workflow_state=data.workflow_state)
-        
-        db.add(req)
-        db.commit()
-        
-        return {
-            'id': req.id,
-            'workflow_state': req.workflow_state,
-            'message': 'Reviewer request created'
-        }
-    
-    except Exception as e:
-        db.rollback()
-        raise HTTPException(status_code=500, detail=str(e))
-
-@router.post('/admin/payout-request')
-def add_payout_request(data: PayoutRequestSchema, db: Session = Depends(get_db)):
-    """Admin endpoint to create payout requests"""
-    try:
-        req = PayoutRequest(
-            approved_amount=data.approved_amount,
-            deductible=data.deductible,
-            policy_limit=data.policy_limit
-        )
-        
-        db.add(req)
-        db.commit()
-        
-        return {
-            'id': req.id,
-            'approved_amount': float(req.approved_amount),
-            'deductible': float(req.deductible),
-            'policy_limit': float(req.policy_limit),
-            'message': 'Payout request created'
-        }
-    
-    except Exception as e:
-        db.rollback()
-        raise HTTPException(status_code=500, detail=str(e))
-
-@router.post('/admin/notification')
-def send_notification(data: NotificationRequestSchema, db: Session = Depends(get_db)):
-    """Admin endpoint to send notifications"""
-    try:
-        req = NotificationRequest(
-            recipient_email=data.recipient_email,
-            subject=data.subject,
-            message=data.message,
-            sent=True  # In a real app, this would be sent via email service
-        )
-        
-        db.add(req)
-        db.commit()
-        
-        return {
-            'id': req.id,
-            'recipient_email': req.recipient_email,
-            'subject': req.subject,
-            'message': req.message,
-            'sent': req.sent,
-            'response_message': 'Notification sent successfully'
-        }
-    
-    except Exception as e:
-        db.rollback()
-        raise HTTPException(status_code=500, detail=str(e))
-
-@router.post('/medical/enrich')
-def medical_data_enrichment(data: MedicalEnrichmentRequestSchema):
-    """Endpoint for medical data enrichment"""
-    try:
-        # Map diagnosis to ICD code
-        diagnosis_lower = data.diagnosis.lower()
-        icd_code = "UNKNOWN"
-        description = "Unknown diagnosis"
-        
-        for key, (code, desc) in ICD_MAP.items():
-            if key in diagnosis_lower:
-                icd_code = code
-                description = desc
-                break
-        
-        return {
-            'diagnosis': data.diagnosis,
-            'icd_code': icd_code,
-            'description': description,
+            'registration_number': data.registration_number,
             'hospital_name': data.hospital_name,
-            'verified': True
+            'verified': is_verified,
+            'verified_at': verification.verified_at.isoformat() if is_verified else None
         }
     
     except Exception as e:
+        db.rollback()
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.post('/claims/review')
-def claim_review(claim_id: str, status: str = "pending"):
-    """Endpoint to review insurance claims"""
+
+@router.get('/psv/hospital/registration/{registration_number}')
+def get_hospital_verification(registration_number: str, db: Session = Depends(get_db)):
+    """GET /api/v1/insurance/hospital/{registration_number} - Retrieve hospital verification result"""
     try:
-        return {
-            'claim_id': claim_id,
-            'status': status,
-            'message': f'Claim {claim_id} review recorded',
-            'reviewed_at': None
-        }
+        record = db.query(HospitalVerification).filter_by(
+            registration_number=registration_number
+        ).first()
+        
+        if not record:
+            raise HTTPException(status_code=404, detail="Hospital verification record not found")
+        
+        return record.to_dict()
     
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.post('/payout/process')
-def process_payout(claim_id: str, payout_amount: float = 0):
-    """Endpoint to process payout"""
+
+# =========================================================
+# PATIENT VERIFICATION ENDPOINTS
+# =========================================================
+
+@router.post('/psv/patient/identity')
+def verify_patient_identity(data: PatientVerificationRequestSchema, db: Session = Depends(get_db)):
+    """POST /api/v1/insurance/patient/verify - Verify patient identity by Aadhar and other details"""
     try:
+        # Mock patient Aadhar registry - in production this would verify against real government registry
+        patient_aadhar_db = {
+            "1234": ("Rajesh Kumar", "1990-05-15", "M"),  # aadhar ending in 1234
+            "5678": ("Priya Singh", "1985-03-22", "F"),   # aadhar ending in 5678
+            "9012": ("Arjun Patel", "1992-08-10", "M"),   # aadhar ending in 9012
+        }
+        
+        # Verify Aadhar details match
+        aadhar_data = patient_aadhar_db.get(data.aadhar_last4)
+        is_verified = False
+        
+        if aadhar_data:
+            stored_name, stored_dob, stored_gender = aadhar_data
+            is_verified = (
+                data.full_name.lower() == stored_name.lower() and
+                data.date_of_birth == stored_dob and
+                data.gender.upper() == stored_gender.upper()
+            )
+        
+        # Store verification record
+        verification = PatientVerification(
+            patient_id=data.patient_id,
+            aadhar_last4=data.aadhar_last4,
+            full_name=data.full_name,
+            date_of_birth=data.date_of_birth,
+            gender=data.gender,
+            verified=is_verified,
+            verified_at=datetime.utcnow() if is_verified else None
+        )
+        
+        db.add(verification)
+        db.commit()
+        
         return {
-            'claim_id': claim_id,
-            'payout_amount': payout_amount,
-            'status': 'processed',
-            'message': f'Payout of {payout_amount} processed for claim {claim_id}'
+            'patient_id': data.patient_id,
+            'aadhar_last4': data.aadhar_last4,
+            'full_name': data.full_name,
+            'date_of_birth': data.date_of_birth,
+            'gender': data.gender,
+            'verified': is_verified,
+            'verified_at': verification.verified_at.isoformat() if is_verified else None
         }
     
     except Exception as e:
+        db.rollback()
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.post('/notification/send')
-def send_notification_endpoint(data: NotificationRequestSchema):
-    """Endpoint to send notification"""
+
+@router.get('/psv/patient/identity/{patient_id}')
+def get_patient_verification(patient_id: str, db: Session = Depends(get_db)):
+    """GET /api/v1/insurance/patient/{patient_id} - Retrieve patient identity verification result"""
     try:
-        return {
-            'recipient_email': data.recipient_email,
-            'subject': data.subject,
-            'status': 'sent',
-            'message': 'Notification sent successfully'
-        }
+        record = db.query(PatientVerification).filter_by(
+            patient_id=patient_id
+        ).first()
+        
+        if not record:
+            raise HTTPException(status_code=404, detail="Patient verification record not found")
+        
+        return record.to_dict()
     
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

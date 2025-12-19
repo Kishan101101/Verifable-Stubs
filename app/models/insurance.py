@@ -84,3 +84,55 @@ class NotificationRequest(Base):
             'updated_at': self.updated_at.isoformat()
         }
 
+
+class HospitalVerification(Base):
+    """Hospital registration verification requests"""
+    __tablename__ = 'hospital_verifications'
+    
+    id = Column(Integer, primary_key=True)
+    registration_number = Column(String(255), nullable=False, unique=True)
+    hospital_name = Column(String(255), nullable=False)
+    verified = Column(Boolean, default=False)
+    verified_at = Column(DateTime, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    def to_dict(self):
+        return {
+            'registration_number': self.registration_number,
+            'hospital_name': self.hospital_name,
+            'verified': self.verified,
+            'verified_at': self.verified_at.isoformat() if self.verified_at else None,
+            'created_at': self.created_at.isoformat(),
+            'updated_at': self.updated_at.isoformat()
+        }
+
+
+class PatientVerification(Base):
+    """Patient identity verification requests"""
+    __tablename__ = 'patient_verifications'
+    
+    id = Column(Integer, primary_key=True)
+    patient_id = Column(String(255), nullable=False, unique=True)
+    aadhar_last4 = Column(String(4), nullable=False)
+    full_name = Column(String(255), nullable=False)
+    date_of_birth = Column(String(10), nullable=False)
+    gender = Column(String(10), nullable=False)
+    verified = Column(Boolean, default=False)
+    verified_at = Column(DateTime, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    def to_dict(self):
+        return {
+            'patient_id': self.patient_id,
+            'aadhar_last4': self.aadhar_last4,
+            'full_name': self.full_name,
+            'date_of_birth': self.date_of_birth,
+            'gender': self.gender,
+            'verified': self.verified,
+            'verified_at': self.verified_at.isoformat() if self.verified_at else None,
+            'created_at': self.created_at.isoformat(),
+            'updated_at': self.updated_at.isoformat()
+        }
+

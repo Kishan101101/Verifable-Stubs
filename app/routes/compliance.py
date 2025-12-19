@@ -26,6 +26,7 @@ router = APIRouter()
 
 @router.post("/aml/sanctions", response_model=SanctionsCheckResponse)
 def sanctions_check(payload: SanctionsCheckRequest, db: Session = Depends(get_db)):
+    """POST /compliance/aml/sanctions - Check if entity is on sanctions lists"""
     request_id = str(uuid.uuid4())
     response_data = {
         "request_id": request_id,
@@ -54,6 +55,7 @@ def sanctions_check(payload: SanctionsCheckRequest, db: Session = Depends(get_db
 
 @router.post("/aml/pep", response_model=PEPCheckResponse)
 def pep_check(payload: PEPCheckRequest, db: Session = Depends(get_db)):
+    """POST /compliance/aml/pep - Check if entity is a PEP (Politically Exposed Person)"""
     request_id = str(uuid.uuid4())
     response_data = {
         "request_id": request_id,
@@ -80,6 +82,7 @@ def pep_check(payload: PEPCheckRequest, db: Session = Depends(get_db)):
 
 @router.post("/gdpr/check", response_model=GDPRCheckResponse)
 def gdpr_check(payload: GDPRCheckRequest, db: Session = Depends(get_db)):
+    """POST /compliance/gdpr/check - Verify GDPR compliance requirements"""
     missing = []
     if not payload.has_privacy_policy:
         missing.append("privacy_policy")
@@ -115,6 +118,7 @@ def gdpr_check(payload: GDPRCheckRequest, db: Session = Depends(get_db)):
 
 @router.post("/pci/check", response_model=PCICheckResponse)
 def pci_check(payload: PCICheckRequest, db: Session = Depends(get_db)):
+    """POST /compliance/pci/check - Verify PCI DSS compliance requirements"""
     issues = []
     if payload.stores_card_data and not payload.encryption_enabled:
         issues.append("Card data stored without encryption")
@@ -146,6 +150,7 @@ def pci_check(payload: PCICheckRequest, db: Session = Depends(get_db)):
 
 @router.post("/hipaa/check", response_model=HIPAACheckResponse)
 def hipaa_check(payload: HIPAACheckRequest, db: Session = Depends(get_db)):
+    """POST /compliance/hipaa/check - Verify HIPAA compliance requirements"""
     violations = []
     if payload.handles_phi and not payload.access_logging:
         violations.append("Missing access logs for PHI")
@@ -177,6 +182,7 @@ def hipaa_check(payload: HIPAACheckRequest, db: Session = Depends(get_db)):
 
 @router.post("/iso27001/check", response_model=ISO27001Response)
 def iso_check(payload: ISO27001Request, db: Session = Depends(get_db)):
+    """POST /compliance/iso27001/check - Verify ISO 27001 compliance requirements"""
     gaps = []
     if not payload.risk_assessment_done:
         gaps.append("Risk assessment missing")
@@ -209,6 +215,7 @@ def iso_check(payload: ISO27001Request, db: Session = Depends(get_db)):
 
 @router.post("/market/check", response_model=MarketComplianceResponse)
 def market_check(payload: MarketComplianceRequest, db: Session = Depends(get_db)):
+    """POST /compliance/market/check - Verify market compliance (FINRA/MiFID)"""
     remarks = []
     if not payload.trade_monitoring:
         remarks.append("Trade monitoring missing")
@@ -244,7 +251,7 @@ def market_check(payload: MarketComplianceRequest, db: Session = Depends(get_db)
 
 @router.get("/aml/sanctions/{request_id}")
 def get_sanctions_result(request_id: str, db: Session = Depends(get_db)):
-    """Retrieve stored sanctions check result by request_id"""
+    """GET /compliance/aml/sanctions/{request_id} - Retrieve stored sanctions check result"""
     record = db.query(ComplianceRecord).filter_by(
         request_id=request_id, check_type="sanctions"
     ).first()
@@ -257,7 +264,7 @@ def get_sanctions_result(request_id: str, db: Session = Depends(get_db)):
 
 @router.get("/aml/pep/{request_id}")
 def get_pep_result(request_id: str, db: Session = Depends(get_db)):
-    """Retrieve stored PEP check result by request_id"""
+    """GET /compliance/aml/pep/{request_id} - Retrieve stored PEP check result"""
     record = db.query(ComplianceRecord).filter_by(
         request_id=request_id, check_type="pep"
     ).first()
@@ -270,7 +277,7 @@ def get_pep_result(request_id: str, db: Session = Depends(get_db)):
 
 @router.get("/gdpr/check/{request_id}")
 def get_gdpr_result(request_id: str, db: Session = Depends(get_db)):
-    """Retrieve stored GDPR compliance check result by request_id"""
+    """GET /compliance/gdpr/check/{request_id} - Retrieve stored GDPR check result"""
     record = db.query(ComplianceRecord).filter_by(
         request_id=request_id, check_type="gdpr"
     ).first()
@@ -283,7 +290,7 @@ def get_gdpr_result(request_id: str, db: Session = Depends(get_db)):
 
 @router.get("/pci/check/{request_id}")
 def get_pci_result(request_id: str, db: Session = Depends(get_db)):
-    """Retrieve stored PCI DSS compliance check result by request_id"""
+    """GET /compliance/pci/check/{request_id} - Retrieve stored PCI DSS check result"""
     record = db.query(ComplianceRecord).filter_by(
         request_id=request_id, check_type="pci"
     ).first()
@@ -296,7 +303,7 @@ def get_pci_result(request_id: str, db: Session = Depends(get_db)):
 
 @router.get("/hipaa/check/{request_id}")
 def get_hipaa_result(request_id: str, db: Session = Depends(get_db)):
-    """Retrieve stored HIPAA compliance check result by request_id"""
+    """GET /compliance/hipaa/check/{request_id} - Retrieve stored HIPAA check result"""
     record = db.query(ComplianceRecord).filter_by(
         request_id=request_id, check_type="hipaa"
     ).first()
@@ -309,7 +316,7 @@ def get_hipaa_result(request_id: str, db: Session = Depends(get_db)):
 
 @router.get("/iso27001/check/{request_id}")
 def get_iso27001_result(request_id: str, db: Session = Depends(get_db)):
-    """Retrieve stored ISO 27001 compliance check result by request_id"""
+    """GET /compliance/iso27001/check/{request_id} - Retrieve stored ISO 27001 check result"""
     record = db.query(ComplianceRecord).filter_by(
         request_id=request_id, check_type="iso27001"
     ).first()
@@ -322,7 +329,7 @@ def get_iso27001_result(request_id: str, db: Session = Depends(get_db)):
 
 @router.get("/market/check/{request_id}")
 def get_market_result(request_id: str, db: Session = Depends(get_db)):
-    """Retrieve stored market (FINRA/MiFID) compliance check result by request_id"""
+    """GET /compliance/market/check/{request_id} - Retrieve stored market compliance check result"""
     record = db.query(ComplianceRecord).filter_by(
         request_id=request_id, check_type="market"
     ).first()

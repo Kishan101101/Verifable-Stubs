@@ -48,6 +48,44 @@ class NotificationResponseSchema(BaseModel):
     subject: str
     message: str
     sent: bool
+
+
+# ============================
+# HOSPITAL VERIFICATION SCHEMAS
+# ============================
+
+class HospitalVerificationRequestSchema(BaseModel):
+    registration_number: str
+    hospital_name: str
+
+
+class HospitalVerificationResponseSchema(BaseModel):
+    registration_number: str
+    hospital_name: str
+    verified: bool
+    verified_at: Optional[str] = None
+
+
+# ============================
+# PATIENT VERIFICATION SCHEMAS
+# ============================
+
+class PatientVerificationRequestSchema(BaseModel):
+    patient_id: str
+    aadhar_last4: str
+    full_name: str
+    date_of_birth: str
+    gender: str
+
+
+class PatientVerificationResponseSchema(BaseModel):
+    patient_id: str
+    aadhar_last4: str
+    full_name: str
+    date_of_birth: str
+    gender: str
+    verified: bool
+    verified_at: Optional[str] = None
     response_message: str
 
 class MedicalDataEnrichmentSchema(BaseModel):
