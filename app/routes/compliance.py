@@ -1,7 +1,6 @@
 from fastapi import APIRouter, Depends
 from datetime import datetime
 import uuid
-import json
 from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.models.compliance import ComplianceRecord

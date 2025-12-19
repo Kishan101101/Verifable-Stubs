@@ -24,6 +24,7 @@ This creates your `.env` file with default values. Edit `.env` if needed (usuall
 
 ### Step 3: Start Database (Docker)
 ```powershell
+docker compose up
 docker ps
 ```
 Should show `verifiable_stubs_db` running.
@@ -41,13 +42,13 @@ pip install -r requirements.txt
 
 ### Step 6: Create Database Tables
 ```powershell
-venv\Scripts\python -m alembic upgrade head
+ alembic upgrade head
 ```
 
 
 ### Step 7: Start Server
 ```powershell
-venv\Scripts\python -m uvicorn main:app --host 0.0.0.0 --port 8000
+uvicorn main:app --host 0.0.0.0 --port 8000
 ```
 
 You should see:
@@ -58,20 +59,7 @@ INFO:     Application startup complete
 
 **→ Server is now running!**
 
----
 
-## Quick Setup (macOS / Linux)
-
-Same steps as Windows, but use:
-```bash
-cp .env.example .env
-source venv/bin/activate
-pip install -r requirements.txt
-venv/bin/python -m alembic upgrade head
-venv/bin/python -m uvicorn main:app --host 0.0.0.0 --port 8000
-```
-
----
 
 ## 🎯 Swagger UI — Complete API Documentation
 
