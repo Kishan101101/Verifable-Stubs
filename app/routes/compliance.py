@@ -1,12 +1,14 @@
-from fastapi import APIRouter, Depends, HTTPException
+"""
+Legacy Compliance Check Endpoints
+These provide specific compliance framework checks (GDPR, PCI, HIPAA, ISO27001, Market)
+"""
+from fastapi import APIRouter, Depends
 from datetime import datetime
 import uuid
 from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.models.compliance import ComplianceRecord
 from app.schemas.compliance_schema import (
-    SanctionsCheckRequest,
-    SanctionsCheckResponse,
     PEPCheckRequest,
     PEPCheckResponse,
     GDPRCheckRequest,
@@ -24,36 +26,11 @@ from app.schemas.compliance_schema import (
 router = APIRouter()
 
 
-@router.post("/aml/sanctions", response_model=SanctionsCheckResponse)
-def sanctions_check(payload: SanctionsCheckRequest, db: Session = Depends(get_db)):
-    """POST /compliance/aml/sanctions - Check if entity is on sanctions lists"""
-    request_id = str(uuid.uuid4())
-    response_data = {
-        "request_id": request_id,
-        "status": "completed",
-        "checked_at": datetime.utcnow().isoformat(),
-        "sanctions_hit": False,
-        "risk_level": "low",
-        "matched_lists": [],
-        "evidence": [],
-    }
-    
-    # Save to database
-    record = ComplianceRecord(
-        request_id=request_id,
-        check_type="sanctions",
-        status="completed",
-        request_payload=payload.dict(),
-        response_payload=response_data,
-        completed_at=datetime.utcnow(),
-    )
-    db.add(record)
-    db.commit()
-    
-    return response_data
+# ============================================
+# Specific Compliance Framework Checks
+# ============================================
 
-
-@router.post("/aml/pep", response_model=PEPCheckResponse)
+@router.post("/aml/pep", response_model=PEPCheckResponse, tags=["AML"])
 def pep_check(payload: PEPCheckRequest, db: Session = Depends(get_db)):
     """POST /compliance/aml/pep - Check if entity is a PEP (Politically Exposed Person)"""
     request_id = str(uuid.uuid4())
@@ -80,7 +57,7 @@ def pep_check(payload: PEPCheckRequest, db: Session = Depends(get_db)):
     return response_data
 
 
-@router.post("/gdpr/check", response_model=GDPRCheckResponse)
+@router.post("/gdpr/check", response_model=GDPRCheckResponse, tags=["GDPR"])
 def gdpr_check(payload: GDPRCheckRequest, db: Session = Depends(get_db)):
     """POST /compliance/gdpr/check - Verify GDPR compliance requirements"""
     missing = []
@@ -95,10 +72,9 @@ def gdpr_check(payload: GDPRCheckRequest, db: Session = Depends(get_db)):
     request_id = str(uuid.uuid4())
     response_data = {
         "request_id": request_id,
-        "status": "completed",
+        "status": "compliant" if score >= 70 else "non_compliant",
         "checked_at": datetime.utcnow().isoformat(),
         "compliance_score": max(score, 0),
-        "status": "compliant" if score >= 70 else "non_compliant",
         "missing_requirements": missing,
     }
     
@@ -116,7 +92,7 @@ def gdpr_check(payload: GDPRCheckRequest, db: Session = Depends(get_db)):
     return response_data
 
 
-@router.post("/pci/check", response_model=PCICheckResponse)
+@router.post("/pci/check", response_model=PCICheckResponse, tags=["PCI-DSS"])
 def pci_check(payload: PCICheckRequest, db: Session = Depends(get_db)):
     """POST /compliance/pci/check - Verify PCI DSS compliance requirements"""
     issues = []
@@ -148,7 +124,7 @@ def pci_check(payload: PCICheckRequest, db: Session = Depends(get_db)):
     return response_data
 
 
-@router.post("/hipaa/check", response_model=HIPAACheckResponse)
+@router.post("/hipaa/check", response_model=HIPAACheckResponse, tags=["HIPAA"])
 def hipaa_check(payload: HIPAACheckRequest, db: Session = Depends(get_db)):
     """POST /compliance/hipaa/check - Verify HIPAA compliance requirements"""
     violations = []
@@ -180,7 +156,7 @@ def hipaa_check(payload: HIPAACheckRequest, db: Session = Depends(get_db)):
     return response_data
 
 
-@router.post("/iso27001/check", response_model=ISO27001Response)
+@router.post("/iso27001/check", response_model=ISO27001Response, tags=["ISO27001"])
 def iso_check(payload: ISO27001Request, db: Session = Depends(get_db)):
     """POST /compliance/iso27001/check - Verify ISO 27001 compliance requirements"""
     gaps = []
@@ -213,7 +189,7 @@ def iso_check(payload: ISO27001Request, db: Session = Depends(get_db)):
     return response_data
 
 
-@router.post("/market/check", response_model=MarketComplianceResponse)
+@router.post("/market/check", response_model=MarketComplianceResponse, tags=["Market Compliance"])
 def market_check(payload: MarketComplianceRequest, db: Session = Depends(get_db)):
     """POST /compliance/market/check - Verify market compliance (FINRA/MiFID)"""
     remarks = []
@@ -243,98 +219,3 @@ def market_check(payload: MarketComplianceRequest, db: Session = Depends(get_db)
     db.commit()
     
     return response_data
-
-
-# =========================================================
-# GET ENDPOINTS - Fetch stored compliance results
-# =========================================================
-
-@router.get("/aml/sanctions/{request_id}")
-def get_sanctions_result(request_id: str, db: Session = Depends(get_db)):
-    """GET /compliance/aml/sanctions/{request_id} - Retrieve stored sanctions check result"""
-    record = db.query(ComplianceRecord).filter_by(
-        request_id=request_id, check_type="sanctions"
-    ).first()
-    
-    if not record:
-        raise HTTPException(status_code=404, detail="Sanctions result not found")
-    
-    return record.response_payload
-
-
-@router.get("/aml/pep/{request_id}")
-def get_pep_result(request_id: str, db: Session = Depends(get_db)):
-    """GET /compliance/aml/pep/{request_id} - Retrieve stored PEP check result"""
-    record = db.query(ComplianceRecord).filter_by(
-        request_id=request_id, check_type="pep"
-    ).first()
-    
-    if not record:
-        raise HTTPException(status_code=404, detail="PEP result not found")
-    
-    return record.response_payload
-
-
-@router.get("/gdpr/check/{request_id}")
-def get_gdpr_result(request_id: str, db: Session = Depends(get_db)):
-    """GET /compliance/gdpr/check/{request_id} - Retrieve stored GDPR check result"""
-    record = db.query(ComplianceRecord).filter_by(
-        request_id=request_id, check_type="gdpr"
-    ).first()
-    
-    if not record:
-        raise HTTPException(status_code=404, detail="GDPR result not found")
-    
-    return record.response_payload
-
-
-@router.get("/pci/check/{request_id}")
-def get_pci_result(request_id: str, db: Session = Depends(get_db)):
-    """GET /compliance/pci/check/{request_id} - Retrieve stored PCI DSS check result"""
-    record = db.query(ComplianceRecord).filter_by(
-        request_id=request_id, check_type="pci"
-    ).first()
-    
-    if not record:
-        raise HTTPException(status_code=404, detail="PCI DSS result not found")
-    
-    return record.response_payload
-
-
-@router.get("/hipaa/check/{request_id}")
-def get_hipaa_result(request_id: str, db: Session = Depends(get_db)):
-    """GET /compliance/hipaa/check/{request_id} - Retrieve stored HIPAA check result"""
-    record = db.query(ComplianceRecord).filter_by(
-        request_id=request_id, check_type="hipaa"
-    ).first()
-    
-    if not record:
-        raise HTTPException(status_code=404, detail="HIPAA result not found")
-    
-    return record.response_payload
-
-
-@router.get("/iso27001/check/{request_id}")
-def get_iso27001_result(request_id: str, db: Session = Depends(get_db)):
-    """GET /compliance/iso27001/check/{request_id} - Retrieve stored ISO 27001 check result"""
-    record = db.query(ComplianceRecord).filter_by(
-        request_id=request_id, check_type="iso27001"
-    ).first()
-    
-    if not record:
-        raise HTTPException(status_code=404, detail="ISO 27001 result not found")
-    
-    return record.response_payload
-
-
-@router.get("/market/check/{request_id}")
-def get_market_result(request_id: str, db: Session = Depends(get_db)):
-    """GET /compliance/market/check/{request_id} - Retrieve stored market compliance check result"""
-    record = db.query(ComplianceRecord).filter_by(
-        request_id=request_id, check_type="market"
-    ).first()
-    
-    if not record:
-        raise HTTPException(status_code=404, detail="Market compliance result not found")
-    
-    return record.response_payload

@@ -10,7 +10,7 @@ from app.logging_config import configure_logging
 from app.routes.academic_router import router as academic_router
 from app.routes.doctor_router import router as doctor_router
 from app.routes.insurance_router import router as insurance_router
-from app.routes.compliance import router as compliance_router
+from app.routes.external_compliance import router as external_compliance_router
 
 def create_app(env: str = "development") -> FastAPI:
     """Create and configure FastAPI application"""
@@ -29,7 +29,8 @@ def create_app(env: str = "development") -> FastAPI:
     async def lifespan(app: FastAPI):
         # Startup
         logger = logging.getLogger("startup")
-        port = int(os.getenv("PORT", 8000))
+        # Get port from environment variable (supports both PORT and UVICORN_PORT)
+        port = int(os.getenv("PORT", os.getenv("UVICORN_PORT", 8001)))
         logger.info("Application startup")
         logger.info(f"Swagger UI: http://localhost:{port}/docs")
         logger.info(f"Redoc: http://localhost:{port}/redoc")
@@ -57,8 +58,8 @@ def create_app(env: str = "development") -> FastAPI:
     app.include_router(academic_router, prefix="/api/v1/academic", tags=["Academic"])
     app.include_router(doctor_router, prefix="/api/v1/doctors", tags=["Doctor"])
     app.include_router(insurance_router, prefix="/api/v1/insurance", tags=["Insurance"])
-    # Compliance APIs
-    app.include_router(compliance_router, prefix="/compliance", tags=["Compliance"])
+    # External Compliance & Verification API (base URL: /api)
+    app.include_router(external_compliance_router, prefix="/api", tags=["External Compliance"])
     
     # Health check endpoint
     @app.get("/api/v1/health", tags=["Health"])
